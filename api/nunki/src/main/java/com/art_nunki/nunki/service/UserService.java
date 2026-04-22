@@ -5,6 +5,7 @@ import com.art_nunki.nunki.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,5 +26,35 @@ public class UserService {
         }
 
         return Optional.empty();
+    }
+
+    public List<User> getAll() {
+        return userRepository.findAll();
+    }
+
+    public Optional<User> getById(Long id) {
+        return userRepository.findById(id);
+    }
+
+    public Optional<User> update(Long id, User updatedUser) {
+        return userRepository.findById(id).map(user -> {
+            user.setName(updatedUser.getName());
+            user.setEmail(updatedUser.getEmail());
+
+            if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
+                user.setPassword(updatedUser.getPassword());
+            }
+
+            return userRepository.save(user);
+        });
+    }
+
+    public boolean delete(Long id) {
+        if (!userRepository.existsById(id)) {
+            return false;
+        }
+
+        userRepository.deleteById(id);
+        return true;
     }
 }

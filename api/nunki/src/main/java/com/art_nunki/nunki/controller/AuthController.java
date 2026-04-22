@@ -21,7 +21,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User user) {
         return userService.login(user.getEmail(), user.getPassword())
-                .map(u -> ResponseEntity.ok(u))
-                .orElse(ResponseEntity.status(401).body("Credenciais inválidas"));
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(401).body("Credenciais inválidas"));
     }
 }
