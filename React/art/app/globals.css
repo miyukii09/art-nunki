@@ -1,0 +1,303 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+  Nunki palette (5 colors total):
+  - Primary:   hot magenta / rose
+  - Accent 1:  sunny yellow
+  - Accent 2:  teal
+  - Neutrals:  warm off-white + deep plum (used for bg + fg)
+*/
+
+:root {
+  --font-geist:
+    'Segoe UI', 'Avenir Next', 'Helvetica Neue', sans-serif;
+  --font-display:
+    'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+  --font-mono:
+    'IBM Plex Mono', 'SFMono-Regular', 'Consolas', monospace;
+
+  /* neutrals */
+  --background: oklch(0.985 0.012 80);
+  --foreground: oklch(0.22 0.04 330);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.04 330);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.04 330);
+
+  /* primary = magenta */
+  --primary: oklch(0.66 0.24 350);
+  --primary-foreground: oklch(0.99 0.01 80);
+
+  /* secondary = teal (soft in light mode) */
+  --secondary: oklch(0.93 0.05 190);
+  --secondary-foreground: oklch(0.3 0.08 200);
+
+  /* muted = warm gray-ish */
+  --muted: oklch(0.95 0.015 80);
+  --muted-foreground: oklch(0.48 0.03 330);
+
+  /* accent = yellow */
+  --accent: oklch(0.92 0.12 95);
+  --accent-foreground: oklch(0.28 0.08 60);
+
+  --destructive: oklch(0.6 0.24 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.9 0.02 340);
+  --input: oklch(0.92 0.015 340);
+  --ring: oklch(0.66 0.24 350);
+
+  /* brand accents accessible as raw tokens */
+  --brand-magenta: oklch(0.66 0.24 350);
+  --brand-yellow: oklch(0.86 0.17 92);
+  --brand-teal: oklch(0.72 0.14 200);
+
+  --chart-1: oklch(0.66 0.24 350);
+  --chart-2: oklch(0.72 0.14 200);
+  --chart-3: oklch(0.86 0.17 92);
+  --chart-4: oklch(0.6 0.22 30);
+  --chart-5: oklch(0.55 0.18 280);
+
+  --radius: 0.75rem;
+
+  --sidebar: oklch(0.985 0.012 80);
+  --sidebar-foreground: oklch(0.22 0.04 330);
+  --sidebar-primary: oklch(0.66 0.24 350);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.92 0.12 95);
+  --sidebar-accent-foreground: oklch(0.28 0.08 60);
+  --sidebar-border: oklch(0.9 0.02 340);
+  --sidebar-ring: oklch(0.66 0.24 350);
+}
+
+.dark {
+  /* neutrals - deep plum background keeps the colorful vibe */
+  --background: oklch(0.17 0.025 320);
+  --foreground: oklch(0.96 0.02 80);
+  --card: oklch(0.21 0.03 320);
+  --card-foreground: oklch(0.96 0.02 80);
+  --popover: oklch(0.21 0.03 320);
+  --popover-foreground: oklch(0.96 0.02 80);
+
+  /* primary still magenta but brighter/punchier on dark */
+  --primary: oklch(0.72 0.24 350);
+  --primary-foreground: oklch(0.16 0.02 320);
+
+  --secondary: oklch(0.28 0.06 200);
+  --secondary-foreground: oklch(0.92 0.06 190);
+
+  --muted: oklch(0.24 0.03 320);
+  --muted-foreground: oklch(0.72 0.03 320);
+
+  --accent: oklch(0.32 0.09 85);
+  --accent-foreground: oklch(0.94 0.14 95);
+
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  --border: oklch(0.3 0.04 320);
+  --input: oklch(0.28 0.03 320);
+  --ring: oklch(0.72 0.24 350);
+
+  --brand-magenta: oklch(0.72 0.24 350);
+  --brand-yellow: oklch(0.88 0.18 92);
+  --brand-teal: oklch(0.78 0.14 200);
+
+  --chart-1: oklch(0.72 0.24 350);
+  --chart-2: oklch(0.78 0.14 200);
+  --chart-3: oklch(0.88 0.18 92);
+  --chart-4: oklch(0.65 0.22 30);
+  --chart-5: oklch(0.65 0.2 280);
+
+  --sidebar: oklch(0.19 0.03 320);
+  --sidebar-foreground: oklch(0.96 0.02 80);
+  --sidebar-primary: oklch(0.72 0.24 350);
+  --sidebar-primary-foreground: oklch(0.16 0.02 320);
+  --sidebar-accent: oklch(0.32 0.09 85);
+  --sidebar-accent-foreground: oklch(0.94 0.14 95);
+  --sidebar-border: oklch(0.3 0.04 320);
+  --sidebar-ring: oklch(0.72 0.24 350);
+}
+
+@theme inline {
+  --font-sans: var(--font-geist);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-brand-magenta: var(--brand-magenta);
+  --color-brand-yellow: var(--brand-yellow);
+  --color-brand-teal: var(--brand-teal);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html,
+  body {
+    transition:
+      background-color 0.45s ease,
+      color 0.45s ease,
+      border-color 0.45s ease;
+  }
+
+  .theme-animating *,
+  .theme-animating *::before,
+  .theme-animating *::after {
+    transition:
+      background-color 0.45s ease,
+      color 0.45s ease,
+      border-color 0.45s ease,
+      box-shadow 0.45s ease,
+      fill 0.45s ease,
+      stroke 0.45s ease !important;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.45s;
+  animation-timing-function: ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body,
+  .theme-animating *,
+  .theme-animating *::before,
+  .theme-animating *::after,
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Button animations ---------- */
+
+/* Shine sweep that passes over solid-colored buttons on hover */
+.btn-shine::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 65%,
+    transparent 100%
+  );
+  transform: translateX(-120%);
+  transition: transform 0.7s ease;
+  pointer-events: none;
+}
+
+.btn-shine:hover::before {
+  transform: translateX(120%);
+}
+
+.dark .btn-shine::before {
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.18) 50%,
+    transparent 65%,
+    transparent 100%
+  );
+}
+
+/* Subtle pulse used for the primary CTA in the hero */
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 12px color-mix(in oklch, var(--primary) 0%, transparent);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2.2s ease-out infinite;
+}
+
+/* Entrada suave dos cards da galeria */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
+}
+
+/* Bounce used for icon buttons to call attention */
+@keyframes soft-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+.hover\:animate-soft-bounce:hover {
+  animation: soft-bounce 0.6s ease-in-out;
+}
