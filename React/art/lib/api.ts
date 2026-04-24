@@ -14,6 +14,7 @@ export type User = {
   id: number
   name: string
   email: string
+  avatarUrl?: string | null
 }
 
 export type Post = {
@@ -21,6 +22,7 @@ export type Post = {
   title: string
   description: string
   imageUrl: string
+  category: string
   user?: User | null
   createdAt: string
 }
@@ -74,6 +76,7 @@ async function request<T>(
 export function register(input: {
   name: string
   email: string
+  avatarUrl?: string
   password: string
 }) {
   return request<User>("/auth/register", {
@@ -95,10 +98,15 @@ export function listPosts() {
   return request<Post[]>("/posts", { method: "GET" })
 }
 
+export function getPost(id: number) {
+  return request<Post>(`/posts/${id}`, { method: "GET" })
+}
+
 export function createPost(input: {
   title: string
   description: string
   imageUrl: string
+  category: string
   userId: number
 }) {
   return request<Post>("/posts", {
@@ -107,8 +115,37 @@ export function createPost(input: {
       title: input.title,
       description: input.description,
       imageUrl: input.imageUrl,
+      category: input.category,
       user: { id: input.userId },
     }),
+  })
+}
+
+export function updatePost(
+  id: number,
+  input: {
+    title: string
+    description: string
+    imageUrl: string
+    category: string
+    userId: number
+  },
+) {
+  return request<Post>(`/posts/${id}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      title: input.title,
+      description: input.description,
+      imageUrl: input.imageUrl,
+      category: input.category,
+      user: { id: input.userId },
+    }),
+  })
+}
+
+export function deletePost(id: number, userId: number) {
+  return request<void>(`/posts/${id}?userId=${userId}`, {
+    method: "DELETE",
   })
 }
 
@@ -120,7 +157,7 @@ export function getUser(id: number) {
 
 export function updateUser(
   id: number,
-  input: { name: string; email: string; password?: string },
+  input: { name: string; email: string; avatarUrl?: string; password?: string },
 ) {
   return request<User>(`/users/${id}`, {
     method: "PUT",

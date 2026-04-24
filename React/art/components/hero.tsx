@@ -53,16 +53,26 @@ export function Hero() {
 
         <div className="flex flex-wrap items-center justify-center gap-3">
           {user ? (
-            <Button
-              asChild
-              size="lg"
-              className="group rounded-full animate-pulse-glow"
-            >
-              <Link href="/publicar" className="gap-2">
-                Publicar uma arte
-                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
-            </Button>
+            <>
+              <Button
+                asChild
+                size="lg"
+                className="group rounded-full animate-pulse-glow"
+              >
+                <Link href="/publicar" className="gap-2">
+                  Publicar uma arte
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="rounded-full border-2"
+              >
+                <Link href="/galeria">Ver galeria</Link>
+              </Button>
+            </>
           ) : (
             <>
               <Button
@@ -81,7 +91,7 @@ export function Hero() {
                 variant="outline"
                 className="rounded-full border-2"
               >
-                <Link href="#galeria">Ver galeria</Link>
+                <Link href="/galeria">Ver galeria</Link>
               </Button>
             </>
           )}

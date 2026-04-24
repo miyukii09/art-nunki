@@ -7,6 +7,8 @@ import { Loader2, Trash2 } from "lucide-react"
 import { deleteUser, updateUser } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ImageSourceField } from "@/components/image-source-field"
 import { Input } from "@/components/ui/input"
 import {
   Field,
@@ -32,9 +34,11 @@ export function ProfileForm() {
 
   const [name, setName] = React.useState("")
   const [email, setEmail] = React.useState("")
+  const [avatarUrl, setAvatarUrl] = React.useState("")
   const [password, setPassword] = React.useState("")
   const [submitting, setSubmitting] = React.useState(false)
   const [deleting, setDeleting] = React.useState(false)
+  const [avatarPreviewError, setAvatarPreviewError] = React.useState(false)
 
   React.useEffect(() => {
     if (!isLoading && !user) {
@@ -46,8 +50,14 @@ export function ProfileForm() {
     if (user) {
       setName(user.name ?? "")
       setEmail(user.email ?? "")
+      setAvatarUrl(user.avatarUrl ?? "")
+      setAvatarPreviewError(false)
     }
   }, [user])
+
+  React.useEffect(() => {
+    setAvatarPreviewError(false)
+  }, [avatarUrl])
 
   if (isLoading || !user) {
     return (
@@ -64,9 +74,15 @@ export function ProfileForm() {
 
     const trimmedName = name.trim()
     const trimmedEmail = email.trim().toLowerCase()
+    const trimmedAvatarUrl = avatarUrl.trim()
 
     if (!trimmedName || !trimmedEmail) {
       toast.error("Nome e email nao podem ficar vazios.")
+      return
+    }
+
+    if (trimmedAvatarUrl && avatarPreviewError) {
+      toast.error("A URL da foto de perfil nao carregou.")
       return
     }
 
@@ -75,6 +91,7 @@ export function ProfileForm() {
       const updated = await updateUser(user.id, {
         name: trimmedName,
         email: trimmedEmail,
+        avatarUrl: trimmedAvatarUrl || undefined,
         password: password || undefined,
       })
       setUser(updated)
@@ -112,6 +129,32 @@ export function ProfileForm() {
         className="rounded-2xl border border-border bg-card p-6 shadow-sm md:p-8"
       >
         <FieldGroup>
+          <div className="flex items-center gap-4 rounded-2xl border border-border bg-background/80 p-4">
+            <Avatar className="h-20 w-20 border-2 border-primary">
+              {avatarUrl.trim() && !avatarPreviewError ? (
+                <AvatarImage
+                  src={avatarUrl}
+                  alt={`Foto de perfil de ${name || user.name}`}
+                  onError={() => setAvatarPreviewError(true)}
+                />
+              ) : null}
+              <AvatarFallback className="bg-accent text-accent-foreground text-lg font-semibold">
+                {(name || user.name || user.email)
+                  .split(" ")
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((part) => part[0]?.toUpperCase() ?? "")
+                  .join("")}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-medium">Pré-visualização da foto</p>
+              <p className="text-sm text-muted-foreground">
+                Use um link direto para um arquivo de imagem.
+              </p>
+            </div>
+          </div>
+
           <Field>
             <FieldLabel htmlFor="name">Nome</FieldLabel>
             <Input
@@ -133,6 +176,17 @@ export function ProfileForm() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </Field>
+
+          <ImageSourceField
+            id="avatarUrl"
+            label="Foto de perfil"
+            value={avatarUrl}
+            onChange={setAvatarUrl}
+            previewAlt={`Foto de perfil de ${name || user.name}`}
+            description="Escolha uma imagem do seu computador ou cole uma URL."
+            previewError={avatarPreviewError}
+            onPreviewErrorChange={setAvatarPreviewError}
+          />
 
           <Field>
             <FieldLabel htmlFor="password">Nova senha</FieldLabel>

@@ -15,6 +15,9 @@ public class UserService {
     private UserRepository userRepository;
 
     public User register(User user) {
+        if (user.getAvatarUrl() != null) {
+            user.setAvatarUrl(user.getAvatarUrl().trim());
+        }
         return userRepository.save(user);
     }
 
@@ -40,6 +43,9 @@ public class UserService {
         return userRepository.findById(id).map(user -> {
             user.setName(updatedUser.getName());
             user.setEmail(updatedUser.getEmail());
+            user.setAvatarUrl(
+                    updatedUser.getAvatarUrl() != null ? updatedUser.getAvatarUrl().trim() : null
+            );
 
             if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
                 user.setPassword(updatedUser.getPassword());

@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 function getInitials(name: string) {
   return name
@@ -48,6 +48,10 @@ export function Navbar() {
         </Link>
 
         <nav className="flex items-center gap-2">
+          <Button asChild variant="ghost" className="rounded-full">
+            <Link href="/galeria">Galeria</Link>
+          </Button>
+
           <ThemeToggle />
 
           {isLoading ? null : user ? (
@@ -69,6 +73,12 @@ export function Navbar() {
                     className="rounded-full outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <Avatar className="h-9 w-9 border-2 border-primary">
+                      {user.avatarUrl ? (
+                        <AvatarImage
+                          src={user.avatarUrl}
+                          alt={`Foto de perfil de ${user.name}`}
+                        />
+                      ) : null}
                       <AvatarFallback className="bg-accent text-accent-foreground font-semibold">
                         {getInitials(user.name || user.email)}
                       </AvatarFallback>

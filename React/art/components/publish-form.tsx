@@ -5,9 +5,17 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 import { createPost } from "@/lib/api"
+import { ImageSourceField } from "@/components/image-source-field"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Field,
@@ -15,6 +23,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
+import { POST_CATEGORIES } from "@/lib/post-categories"
 
 export function PublishForm() {
   const router = useRouter()
@@ -23,6 +32,7 @@ export function PublishForm() {
   const [title, setTitle] = React.useState("")
   const [description, setDescription] = React.useState("")
   const [imageUrl, setImageUrl] = React.useState("")
+  const [category, setCategory] = React.useState("")
   const [submitting, setSubmitting] = React.useState(false)
   const [previewError, setPreviewError] = React.useState(false)
 
@@ -45,9 +55,15 @@ export function PublishForm() {
     const trimmedTitle = title.trim()
     const trimmedDescription = description.trim()
     const trimmedImageUrl = imageUrl.trim()
+    const trimmedCategory = category.trim()
 
-    if (!trimmedTitle || !trimmedImageUrl) {
-      toast.error("Informe um titulo e uma URL de imagem valida.")
+    if (!trimmedTitle || !trimmedImageUrl || !trimmedCategory) {
+      toast.error("Informe titulo, categoria e uma URL de imagem valida.")
+      return
+    }
+
+    if (previewError) {
+      toast.error("A URL da imagem nao carregou. Use um link direto para a arte.")
       return
     }
 
@@ -57,6 +73,7 @@ export function PublishForm() {
         title: trimmedTitle,
         description: trimmedDescription,
         imageUrl: trimmedImageUrl,
+        category: trimmedCategory,
         userId: user.id,
       })
       toast.success("Arte publicada!")
@@ -79,46 +96,41 @@ export function PublishForm() {
     )
   }
 
-  const showPreview = imageUrl.trim().length > 0 && !previewError
-
   return (
     <form
       onSubmit={handleSubmit}
       className="rounded-2xl border border-border bg-card p-6 shadow-sm md:p-8"
     >
       <FieldGroup>
+        <ImageSourceField
+          id="imageUrl"
+          label="Imagem da arte"
+          value={imageUrl}
+          onChange={setImageUrl}
+          previewAlt="Pre-visualizacao da arte"
+          description="Escolha uma imagem do computador ou cole uma URL direta."
+          previewError={previewError}
+          onPreviewErrorChange={setPreviewError}
+        />
+
         <Field>
-          <FieldLabel htmlFor="imageUrl">URL da imagem</FieldLabel>
-          <Input
-            id="imageUrl"
-            type="url"
-            required
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="https://..."
-          />
+          <FieldLabel htmlFor="category">Categoria</FieldLabel>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger id="category" className="w-full">
+              <SelectValue placeholder="Selecione a categoria da arte" />
+            </SelectTrigger>
+            <SelectContent>
+              {POST_CATEGORIES.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <FieldDescription>
-            A API atual salva apenas o endereco da imagem. Cole o link direto
-            para um arquivo .jpg, .png, .webp ou .gif.
+            Isso ajuda quem visita a galeria a entender rapidamente o estilo da obra.
           </FieldDescription>
         </Field>
-
-        {showPreview ? (
-          <div className="overflow-hidden rounded-xl border border-border bg-muted">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={imageUrl || "/placeholder.svg"}
-              alt="Pré-visualização da arte"
-              className="mx-auto max-h-80 w-auto object-contain"
-              onError={() => setPreviewError(true)}
-              crossOrigin="anonymous"
-            />
-          </div>
-        ) : previewError ? (
-          <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            Não conseguimos carregar a imagem dessa URL.
-          </p>
-        ) : null}
 
         <Field>
           <FieldLabel htmlFor="title">Título</FieldLabel>
