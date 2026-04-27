@@ -27,6 +27,12 @@ services:
         value: "false"
       - key: APP_CORS_ALLOWED_ORIGIN_PATTERNS
         value: http://localhost:3000,http://127.0.0.1:3000,https://*.vercel.app
+      - key: APP_PASSWORD_RESET_EXPOSE_RESET_URL
+        value: "false"
+      - key: APP_SESSION_COOKIE_SAME_SITE
+        value: none
+      - key: APP_SESSION_COOKIE_SECURE
+        value: "true"
 
 databases:
   - name: nunki-db
