@@ -14,7 +14,7 @@ type AuthContextValue = {
   user: User | null
   isLoading: boolean
   setUser: (user: User | null) => void
-  setSession: (user: User, token: string) => void
+  setSession: (user: User, token: string | null) => void
   logout: () => void
 }
 
@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const setSession = React.useCallback((u: User, token: string) => {
+  const setSession = React.useCallback((u: User, token: string | null) => {
     const normalizedUser = normalizeUser(u)
     if (!normalizedUser) {
       setStoredAuthToken(null)

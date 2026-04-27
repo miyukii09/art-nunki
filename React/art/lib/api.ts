@@ -27,7 +27,7 @@ export type PasswordResetResponse = {
 
 export type AuthSession = {
   user: User
-  token: string
+  token: string | null
 }
 
 export type Post = {
@@ -105,10 +105,12 @@ function normalizeSession(value: unknown): AuthSession {
     throw new Error("Resposta de login invalida recebida da API.")
   }
 
-  const user = normalizeUser(value.user)
-  const token = asString(value.token)
+  const nestedUser = normalizeUser(value.user)
+  const rootUser = normalizeUser(value)
+  const user = nestedUser ?? rootUser
+  const token = asOptionalString(value.token)
 
-  if (!user || !token) {
+  if (!user) {
     throw new Error("Resposta de login invalida recebida da API.")
   }
 
