@@ -29,6 +29,7 @@ export function PostCard({ post, onClick, index = 0 }: Props) {
   const [imgError, setImgError] = React.useState(false)
   const accent = accentRotation[index % accentRotation.length]
   const authorBg = authorBgRotation[index % authorBgRotation.length]
+  const authorName = post.user?.name || post.user?.email || "Anônimo"
 
   return (
     <button
@@ -89,7 +90,7 @@ export function PostCard({ post, onClick, index = 0 }: Props) {
                 {post.user?.avatarUrl ? (
                   <AvatarImage
                     src={post.user.avatarUrl}
-                    alt={`Foto de perfil de ${post.user.name ?? "autor"}`}
+                    alt={`Foto de perfil de ${authorName}`}
                   />
                 ) : null}
                 <AvatarFallback
@@ -102,7 +103,7 @@ export function PostCard({ post, onClick, index = 0 }: Props) {
                 </AvatarFallback>
               </Avatar>
               <span className="truncate text-sm font-medium">
-                {post.user?.name ?? "Anônimo"}
+                {authorName}
               </span>
             </div>
             {post.createdAt ? (

@@ -50,7 +50,7 @@ export function LoginForm() {
     try {
       const session = await login({ email: trimmedEmail, password })
       setSession(session.user, session.token)
-      toast.success(`Olá, ${session.user.name || session.user.email}!`)
+      toast.success(`Olá, ${session.user.name || session.user.email || "artista"}!`)
       router.push("/")
     } catch (err) {
       const message =

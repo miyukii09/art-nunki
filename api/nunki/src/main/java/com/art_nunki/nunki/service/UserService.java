@@ -28,7 +28,12 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     public User register(User user) {
+        String normalizedName = user.getName() != null ? user.getName().trim() : null;
         String normalizedEmail = normalizeEmail(user.getEmail());
+
+        if (normalizedName == null || normalizedName.isBlank()) {
+            throw new IllegalArgumentException("Nome e obrigatorio.");
+        }
         if (normalizedEmail == null || normalizedEmail.isBlank()) {
             throw new IllegalArgumentException("Email e obrigatorio.");
         }
@@ -39,7 +44,7 @@ public class UserService {
             throw new IllegalArgumentException("Senha e obrigatoria.");
         }
 
-        user.setName(user.getName() != null ? user.getName().trim() : null);
+        user.setName(normalizedName);
         user.setEmail(normalizedEmail);
         if (user.getAvatarUrl() != null) {
             user.setAvatarUrl(user.getAvatarUrl().trim());
@@ -86,7 +91,12 @@ public class UserService {
         }
 
         return userRepository.findById(id).map(user -> {
+            String normalizedName = updatedUser.getName() != null ? updatedUser.getName().trim() : null;
             String normalizedEmail = normalizeEmail(updatedUser.getEmail());
+
+            if (normalizedName == null || normalizedName.isBlank()) {
+                throw new IllegalArgumentException("Nome e obrigatorio.");
+            }
             if (normalizedEmail == null || normalizedEmail.isBlank()) {
                 throw new IllegalArgumentException("Email e obrigatorio.");
             }
@@ -97,7 +107,7 @@ public class UserService {
                         throw new IllegalArgumentException("Ja existe uma conta com esse email.");
                     });
 
-            user.setName(updatedUser.getName());
+            user.setName(normalizedName);
             user.setEmail(normalizedEmail);
             user.setAvatarUrl(
                     updatedUser.getAvatarUrl() != null ? updatedUser.getAvatarUrl().trim() : null

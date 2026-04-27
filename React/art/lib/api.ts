@@ -40,6 +40,81 @@ export type Post = {
   createdAt: string
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null
+}
+
+function asString(value: unknown, fallback = "") {
+  return typeof value === "string" ? value : fallback
+}
+
+function asOptionalString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value : null
+}
+
+function asNumber(value: unknown, fallback = 0) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback
+}
+
+export function normalizeUser(value: unknown): User | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const id = asNumber(value.id)
+  const email = asString(value.email)
+
+  if (!id || !email) {
+    return null
+  }
+
+  return {
+    id,
+    name: asString(value.name),
+    email,
+    avatarUrl: asOptionalString(value.avatarUrl),
+  }
+}
+
+function normalizePost(value: unknown): Post | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const id = asNumber(value.id)
+  const title = asString(value.title)
+  const imageUrl = asString(value.imageUrl)
+
+  if (!id || !title || !imageUrl) {
+    return null
+  }
+
+  return {
+    id,
+    title,
+    description: asString(value.description),
+    imageUrl,
+    category: asString(value.category),
+    user: normalizeUser(value.user),
+    createdAt: asString(value.createdAt),
+  }
+}
+
+function normalizeSession(value: unknown): AuthSession {
+  if (!isRecord(value)) {
+    throw new Error("Resposta de login invalida recebida da API.")
+  }
+
+  const user = normalizeUser(value.user)
+  const token = asString(value.token)
+
+  if (!user || !token) {
+    throw new Error("Resposta de login invalida recebida da API.")
+  }
+
+  return { user, token }
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -98,21 +173,33 @@ export function register(input: {
   avatarUrl?: string
   password: string
 }) {
-  return request<User>("/auth/register", {
+  return request<unknown>("/auth/register", {
     method: "POST",
     body: JSON.stringify(input),
+  }).then((value) => {
+    const user = normalizeUser(value)
+    if (!user) {
+      throw new Error("Resposta de cadastro invalida recebida da API.")
+    }
+    return user
   })
 }
 
 export function login(input: { email: string; password: string }) {
-  return request<AuthSession>("/auth/login", {
+  return request<unknown>("/auth/login", {
     method: "POST",
     body: JSON.stringify(input),
-  })
+  }).then(normalizeSession)
 }
 
 export function getCurrentUser() {
-  return request<User>("/auth/me", { method: "GET" })
+  return request<unknown>("/auth/me", { method: "GET" }).then((value) => {
+    const user = normalizeUser(value)
+    if (!user) {
+      throw new Error("Resposta invalida ao carregar a sessao atual.")
+    }
+    return user
+  })
 }
 
 export function logout() {
@@ -139,11 +226,25 @@ export function resetPassword(input: { token: string; password: string }) {
 // ---------------- Posts ----------------
 
 export function listPosts() {
-  return request<Post[]>("/posts", { method: "GET" })
+  return request<unknown>("/posts", { method: "GET" }).then((value) => {
+    if (!Array.isArray(value)) {
+      throw new Error("Resposta invalida ao carregar as artes.")
+    }
+
+    return value
+      .map(normalizePost)
+      .filter((post): post is Post => post !== null)
+  })
 }
 
 export function getPost(id: number) {
-  return request<Post>(`/posts/${id}`, { method: "GET" })
+  return request<unknown>(`/posts/${id}`, { method: "GET" }).then((value) => {
+    const post = normalizePost(value)
+    if (!post) {
+      throw new Error("Resposta invalida ao carregar a arte.")
+    }
+    return post
+  })
 }
 
 export function createPost(input: {
@@ -152,7 +253,7 @@ export function createPost(input: {
   imageUrl: string
   category: string
 }) {
-  return request<Post>("/posts", {
+  return request<unknown>("/posts", {
     method: "POST",
     body: JSON.stringify({
       title: input.title,
@@ -160,6 +261,12 @@ export function createPost(input: {
       imageUrl: input.imageUrl,
       category: input.category,
     }),
+  }).then((value) => {
+    const post = normalizePost(value)
+    if (!post) {
+      throw new Error("Resposta invalida ao criar a arte.")
+    }
+    return post
   })
 }
 
@@ -172,7 +279,7 @@ export function updatePost(
     category: string
   },
 ) {
-  return request<Post>(`/posts/${id}`, {
+  return request<unknown>(`/posts/${id}`, {
     method: "PUT",
     body: JSON.stringify({
       title: input.title,
@@ -180,6 +287,12 @@ export function updatePost(
       imageUrl: input.imageUrl,
       category: input.category,
     }),
+  }).then((value) => {
+    const post = normalizePost(value)
+    if (!post) {
+      throw new Error("Resposta invalida ao atualizar a arte.")
+    }
+    return post
   })
 }
 
@@ -192,16 +305,28 @@ export function deletePost(id: number) {
 // ---------------- Users ----------------
 
 export function getUser(id: number) {
-  return request<User>(`/users/${id}`, { method: "GET" })
+  return request<unknown>(`/users/${id}`, { method: "GET" }).then((value) => {
+    const user = normalizeUser(value)
+    if (!user) {
+      throw new Error("Resposta invalida ao carregar o usuario.")
+    }
+    return user
+  })
 }
 
 export function updateUser(
   id: number,
   input: { name: string; email: string; avatarUrl?: string; password?: string },
 ) {
-  return request<User>(`/users/${id}`, {
+  return request<unknown>(`/users/${id}`, {
     method: "PUT",
     body: JSON.stringify(input),
+  }).then((value) => {
+    const user = normalizeUser(value)
+    if (!user) {
+      throw new Error("Resposta invalida ao atualizar o usuario.")
+    }
+    return user
   })
 }
 

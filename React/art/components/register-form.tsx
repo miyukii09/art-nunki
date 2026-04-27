@@ -47,7 +47,9 @@ export function RegisterForm() {
       // o backend não retorna password, fazemos login logo em seguida para ter o id
       const session = await login({ email: trimmedEmail, password })
       setSession(session.user, session.token)
-      toast.success(`Conta criada! Bem-vindo, ${session.user.name}.`)
+      toast.success(
+        `Conta criada! Bem-vindo, ${session.user.name || session.user.email || "artista"}.`,
+      )
       router.push("/")
     } catch (err) {
       const message =

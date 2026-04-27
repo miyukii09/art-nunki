@@ -68,6 +68,8 @@ export function ProfileForm() {
     )
   }
 
+  const displayName = name.trim() || user.name || user.email || "Usuario"
+
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault()
     if (!user || submitting) return
@@ -134,12 +136,12 @@ export function ProfileForm() {
               {avatarUrl.trim() && !avatarPreviewError ? (
                 <AvatarImage
                   src={avatarUrl}
-                  alt={`Foto de perfil de ${name || user.name}`}
+                  alt={`Foto de perfil de ${displayName}`}
                   onError={() => setAvatarPreviewError(true)}
                 />
               ) : null}
               <AvatarFallback className="bg-accent text-accent-foreground text-lg font-semibold">
-                {(name || user.name || user.email)
+                {displayName
                   .split(" ")
                   .filter(Boolean)
                   .slice(0, 2)
@@ -182,7 +184,7 @@ export function ProfileForm() {
             label="Foto de perfil"
             value={avatarUrl}
             onChange={setAvatarUrl}
-            previewAlt={`Foto de perfil de ${name || user.name}`}
+            previewAlt={`Foto de perfil de ${displayName}`}
             description="Escolha uma imagem do seu computador ou cole uma URL."
             previewError={avatarPreviewError}
             onPreviewErrorChange={setAvatarPreviewError}

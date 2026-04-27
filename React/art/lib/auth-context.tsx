@@ -5,6 +5,7 @@ import {
   getCurrentUser,
   getStoredAuthToken,
   logout as apiLogout,
+  normalizeUser,
   setStoredAuthToken,
   type User,
 } from "./api"
@@ -32,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const raw = localStorage.getItem(STORAGE_KEY)
         if (raw) {
-          setUserState(JSON.parse(raw))
+          setUserState(normalizeUser(JSON.parse(raw)))
         }
       } catch {
         localStorage.removeItem(STORAGE_KEY)
@@ -71,9 +72,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const setUser = React.useCallback((u: User | null) => {
-    setUserState(u)
-    if (u) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(u))
+    const normalizedUser = normalizeUser(u)
+    setUserState(normalizedUser)
+    if (normalizedUser) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedUser))
     } else {
       localStorage.removeItem(STORAGE_KEY)
       setStoredAuthToken(null)
@@ -81,9 +83,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const setSession = React.useCallback((u: User, token: string) => {
+    const normalizedUser = normalizeUser(u)
+    if (!normalizedUser) {
+      setStoredAuthToken(null)
+      setUserState(null)
+      localStorage.removeItem(STORAGE_KEY)
+      return
+    }
+
     setStoredAuthToken(token)
-    setUserState(u)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(u))
+    setUserState(normalizedUser)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedUser))
   }, [])
 
   const logout = React.useCallback(() => {

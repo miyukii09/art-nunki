@@ -48,6 +48,8 @@ export function PostPreviewDialog({
 }: Props) {
   const { user } = useAuth()
   const isOwner = Boolean(user && post?.user?.id === user.id)
+  const authorName = post?.user?.name || post?.user?.email || "Anônimo"
+  const authorEmail = post?.user?.email || "Artista da comunidade Nunki"
 
   const [isEditing, setIsEditing] = React.useState(false)
   const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false)
@@ -230,7 +232,7 @@ export function PostPreviewDialog({
                   {post.user?.avatarUrl ? (
                     <AvatarImage
                       src={post.user.avatarUrl}
-                      alt={`Foto de perfil de ${post.user.name ?? "autor"}`}
+                      alt={`Foto de perfil de ${authorName}`}
                     />
                   ) : null}
                   <AvatarFallback className="bg-primary text-sm font-bold text-primary-foreground">
@@ -239,10 +241,10 @@ export function PostPreviewDialog({
                 </Avatar>
                 <div className="min-w-0">
                   <p className="truncate font-medium">
-                    {post.user?.name ?? "Anônimo"}
+                    {authorName}
                   </p>
                   <p className="truncate text-sm text-muted-foreground">
-                    {post.user?.email ?? "Artista da comunidade Nunki"}
+                    {authorEmail}
                   </p>
                 </div>
               </div>
