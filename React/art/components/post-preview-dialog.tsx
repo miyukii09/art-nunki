@@ -81,6 +81,7 @@ export function PostPreviewDialog({
   }, [imageUrl])
 
   if (!post) return null
+  const currentPost = post
 
   async function handleSave() {
     if (!user || !isOwner || submitting) return
@@ -104,7 +105,7 @@ export function PostPreviewDialog({
     setError(null)
 
     try {
-      const updated = await updatePost(post.id, {
+      const updated = await updatePost(currentPost.id, {
         title: trimmedTitle,
         description: trimmedDescription,
         imageUrl: trimmedImageUrl,
@@ -126,9 +127,9 @@ export function PostPreviewDialog({
     setError(null)
 
     try {
-      await deletePost(post.id)
+      await deletePost(currentPost.id)
       setConfirmDeleteOpen(false)
-      onDeleted(post.id)
+      onDeleted(currentPost.id)
       onOpenChange(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao excluir a arte.")
