@@ -2,6 +2,7 @@ package com.art_nunki.nunki;
 
 import com.art_nunki.nunki.model.Post;
 import com.art_nunki.nunki.model.User;
+import com.art_nunki.nunki.repository.PasswordResetTokenRepository;
 import com.art_nunki.nunki.repository.PostRepository;
 import com.art_nunki.nunki.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,9 @@ class AuthFlowIntegrationTests {
     private UserRepository userRepository;
 
     @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
     private PostRepository postRepository;
 
     @Autowired
@@ -44,6 +48,7 @@ class AuthFlowIntegrationTests {
 
     @BeforeEach
     void cleanDatabase() {
+        passwordResetTokenRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();
     }

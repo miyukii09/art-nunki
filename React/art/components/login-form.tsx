@@ -4,8 +4,8 @@ import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Loader2 } from "lucide-react"
-import { login } from "@/lib/api"
+import { ExternalLink, Loader2 } from "lucide-react"
+import { login, requestPasswordReset } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import {
@@ -31,6 +31,10 @@ export function LoginForm() {
   const [password, setPassword] = React.useState("")
   const [submitting, setSubmitting] = React.useState(false)
   const [forgotPasswordOpen, setForgotPasswordOpen] = React.useState(false)
+  const [forgotPasswordEmail, setForgotPasswordEmail] = React.useState("")
+  const [forgotPasswordSubmitting, setForgotPasswordSubmitting] =
+    React.useState(false)
+  const [resetUrl, setResetUrl] = React.useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -56,6 +60,37 @@ export function LoginForm() {
       )
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleForgotPasswordSubmit(event: React.FormEvent) {
+    event.preventDefault()
+    if (forgotPasswordSubmitting) return
+
+    const trimmedEmail = forgotPasswordEmail.trim().toLowerCase()
+    if (!trimmedEmail) {
+      toast.error("Informe o email da sua conta.")
+      return
+    }
+
+    setForgotPasswordSubmitting(true)
+    setResetUrl(null)
+
+    try {
+      const result = await requestPasswordReset({
+        email: trimmedEmail,
+        appBaseUrl: window.location.origin,
+      })
+      setResetUrl(result.resetUrl ?? null)
+      toast.success(result.message)
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Nao foi possivel iniciar a recuperacao de senha."
+      toast.error(message)
+    } finally {
+      setForgotPasswordSubmitting(false)
     }
   }
 
@@ -93,7 +128,11 @@ export function LoginForm() {
               type="button"
               variant="link"
               className="h-auto p-0 text-sm"
-              onClick={() => setForgotPasswordOpen(true)}
+              onClick={() => {
+                setForgotPasswordEmail(email.trim().toLowerCase())
+                setResetUrl(null)
+                setForgotPasswordOpen(true)
+              }}
             >
               Esqueci minha senha
             </Button>
@@ -131,48 +170,70 @@ export function LoginForm() {
           <DialogHeader>
             <DialogTitle>Recuperar senha</DialogTitle>
             <DialogDescription>
-              A Nunki ainda não tem recuperação automática por email para
-              manter a troca de senha segura.
+              Informe seu email para gerar um link temporario de redefinicao.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-3 text-sm text-muted-foreground">
-            <p>
-              Se você ainda estiver com a conta aberta em outro navegador ou
-              dispositivo, entre em <strong className="text-foreground">Meu perfil</strong>{" "}
-              e defina uma nova senha por lá.
-            </p>
-            <p>
-              Se não tiver mais acesso, o caminho mais seguro no momento é
-              pedir ajuda ao suporte do projeto para validar a conta antes de
-              qualquer alteração.
-            </p>
-            <p>
-              Email informado:{" "}
-              <strong className="text-foreground">
-                {email.trim() || "nenhum email preenchido ainda"}
-              </strong>
-            </p>
-          </div>
+          <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+            <Field>
+              <FieldLabel htmlFor="forgot-password-email">Email</FieldLabel>
+              <Input
+                id="forgot-password-email"
+                type="email"
+                autoComplete="email"
+                required
+                value={forgotPasswordEmail}
+                onChange={(event) => setForgotPasswordEmail(event.target.value)}
+                placeholder="voce@exemplo.com"
+              />
+              <FieldDescription>
+                Se o email existir, a API vai preparar um link de redefinicao.
+              </FieldDescription>
+            </Field>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setForgotPasswordOpen(false)}
-            >
-              Fechar
-            </Button>
-            <Button asChild type="button">
-              <a
-                href="https://discord.gg/mMtbt27TGe"
-                target="_blank"
-                rel="noreferrer"
+            {resetUrl ? (
+              <div className="rounded-xl border border-border bg-muted/40 p-4 text-sm">
+                <p className="font-medium text-foreground">
+                  Link gerado para redefinir a senha
+                </p>
+                <p className="mt-2 break-all text-muted-foreground">
+                  {resetUrl}
+                </p>
+                <Button asChild type="button" variant="outline" className="mt-3">
+                  <a href={resetUrl}>
+                    Abrir link de redefinicao
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Se o envio por email estiver configurado no backend, o link sera
+                enviado para sua caixa de entrada. Em ambientes de teste, a API
+                tambem pode devolver o link diretamente.
+              </p>
+            )}
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setForgotPasswordOpen(false)}
               >
-                Abrir suporte
-              </a>
-            </Button>
-          </DialogFooter>
+                Fechar
+              </Button>
+              <Button type="submit" disabled={forgotPasswordSubmitting}>
+                {forgotPasswordSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Gerando link...
+                  </>
+                ) : (
+                  "Gerar link"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </form>

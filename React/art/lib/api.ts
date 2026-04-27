@@ -20,6 +20,11 @@ export type User = {
   avatarUrl?: string | null
 }
 
+export type PasswordResetResponse = {
+  message: string
+  resetUrl?: string | null
+}
+
 export type Post = {
   id: number
   title: string
@@ -102,6 +107,23 @@ export function getCurrentUser() {
 
 export function logout() {
   return request<void>("/auth/logout", { method: "POST" })
+}
+
+export function requestPasswordReset(input: {
+  email: string
+  appBaseUrl: string
+}) {
+  return request<PasswordResetResponse>("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify(input),
+  })
+}
+
+export function resetPassword(input: { token: string; password: string }) {
+  return request<string>("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify(input),
+  })
 }
 
 // ---------------- Posts ----------------

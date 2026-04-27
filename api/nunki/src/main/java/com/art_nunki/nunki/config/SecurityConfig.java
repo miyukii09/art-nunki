@@ -36,7 +36,14 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/h2-console/**").permitAll()
-                        .requestMatchers("/auth/register", "/auth/login", "/auth/logout", "/auth/me").permitAll()
+                        .requestMatchers(
+                                "/auth/register",
+                                "/auth/login",
+                                "/auth/logout",
+                                "/auth/me",
+                                "/auth/forgot-password",
+                                "/auth/reset-password"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/posts", "/posts/*").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/users/**", "/posts/**").authenticated()

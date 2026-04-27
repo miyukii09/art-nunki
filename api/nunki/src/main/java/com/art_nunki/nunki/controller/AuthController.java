@@ -1,6 +1,8 @@
 package com.art_nunki.nunki.controller;
 
 import com.art_nunki.nunki.model.User;
+import com.art_nunki.nunki.service.PasswordResetResult;
+import com.art_nunki.nunki.service.PasswordResetService;
 import com.art_nunki.nunki.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,8 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private PasswordResetService passwordResetService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
@@ -52,5 +56,34 @@ public class AuthController {
     public ResponseEntity<Void> logout(HttpSession session) {
         session.invalidate();
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        try {
+            PasswordResetResult result = passwordResetService.requestReset(
+                    request.email(),
+                    request.appBaseUrl()
+            );
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        try {
+            passwordResetService.resetPassword(request.token(), request.password());
+            return ResponseEntity.ok("Senha redefinida com sucesso.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    public record ForgotPasswordRequest(String email, String appBaseUrl) {
+    }
+
+    public record ResetPasswordRequest(String token, String password) {
     }
 }
