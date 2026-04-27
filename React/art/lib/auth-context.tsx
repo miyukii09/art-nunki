@@ -30,18 +30,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let isMounted = true
 
     async function syncUser() {
+      const token = getStoredAuthToken()
+
       try {
         const raw = localStorage.getItem(STORAGE_KEY)
-        if (raw) {
+        if (raw && token) {
           setUserState(normalizeUser(JSON.parse(raw)))
+        } else if (raw) {
+          localStorage.removeItem(STORAGE_KEY)
+          setUserState(null)
         }
       } catch {
         localStorage.removeItem(STORAGE_KEY)
+        setUserState(null)
       }
 
-      const token = getStoredAuthToken()
       if (!token) {
         if (isMounted) {
+          setUserState(null)
           setIsLoading(false)
         }
         return
