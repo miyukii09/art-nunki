@@ -2,6 +2,7 @@ package com.art_nunki.nunki.controller;
 
 import com.art_nunki.nunki.model.Post;
 import com.art_nunki.nunki.service.PostService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,10 +16,14 @@ public class PostController {
     @Autowired
     private PostService postService;
 
+    private Long getAuthenticatedUserId(HttpSession session) {
+        return (Long) session.getAttribute("userId");
+    }
+
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Post post) {
+    public ResponseEntity<?> create(@RequestBody Post post, HttpSession session) {
         try {
-            return ResponseEntity.ok(postService.create(post));
+            return ResponseEntity.ok(postService.create(post, getAuthenticatedUserId(session)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -37,9 +42,9 @@ public class PostController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Post post) {
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Post post, HttpSession session) {
         try {
-            return ResponseEntity.ok(postService.update(id, post));
+            return ResponseEntity.ok(postService.update(id, getAuthenticatedUserId(session), post));
         } catch (IllegalArgumentException e) {
             String message = e.getMessage() != null ? e.getMessage() : "";
             int status = message.contains("nao foi encontrada") ? 404 : 400;
@@ -48,9 +53,9 @@ public class PostController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id, @RequestParam Long userId) {
+    public ResponseEntity<?> delete(@PathVariable Long id, HttpSession session) {
         try {
-            postService.delete(id, userId);
+            postService.delete(id, getAuthenticatedUserId(session));
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             String message = e.getMessage() != null ? e.getMessage() : "";

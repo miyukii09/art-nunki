@@ -107,7 +107,6 @@ export function PostPreviewDialog({
         description: trimmedDescription,
         imageUrl: trimmedImageUrl,
         category: trimmedCategory,
-        userId: user.id,
       })
       onUpdated(updated)
       setIsEditing(false)
@@ -125,7 +124,7 @@ export function PostPreviewDialog({
     setError(null)
 
     try {
-      await deletePost(post.id, user.id)
+      await deletePost(post.id)
       setConfirmDeleteOpen(false)
       onDeleted(post.id)
       onOpenChange(false)

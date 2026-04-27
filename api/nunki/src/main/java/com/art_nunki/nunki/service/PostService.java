@@ -16,7 +16,7 @@ public class PostService {
     @Autowired
     private UserRepository userRepository;
 
-    public Post create(Post post) {
+    public Post create(Post post, Long actingUserId) {
         if (post.getTitle() == null || post.getTitle().isBlank()) {
             throw new IllegalArgumentException("Titulo da arte e obrigatorio.");
         }
@@ -33,11 +33,11 @@ public class PostService {
             throw new IllegalArgumentException("Categoria da arte e obrigatoria.");
         }
 
-        if (post.getUser() == null || post.getUser().getId() == null) {
+        if (actingUserId == null) {
             throw new IllegalArgumentException("Usuario da publicacao e obrigatorio.");
         }
 
-        var author = userRepository.findById(post.getUser().getId())
+        var author = userRepository.findById(actingUserId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario informado nao foi encontrado."));
 
         post.setUser(author);
@@ -56,7 +56,7 @@ public class PostService {
         return postRepository.findById(id);
     }
 
-    public Post update(Long id, Post updatedPost) {
+    public Post update(Long id, Long actingUserId, Post updatedPost) {
         if (updatedPost.getTitle() == null || updatedPost.getTitle().isBlank()) {
             throw new IllegalArgumentException("Titulo da arte e obrigatorio.");
         }
@@ -73,17 +73,16 @@ public class PostService {
             throw new IllegalArgumentException("Categoria da arte e obrigatoria.");
         }
 
-        if (updatedPost.getUser() == null || updatedPost.getUser().getId() == null) {
+        if (actingUserId == null) {
             throw new IllegalArgumentException("Usuario da edicao e obrigatorio.");
         }
 
         Post existingPost = postRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Arte informada nao foi encontrada."));
 
-        Long editorId = updatedPost.getUser().getId();
         Long ownerId = existingPost.getUser() != null ? existingPost.getUser().getId() : null;
 
-        if (ownerId == null || !ownerId.equals(editorId)) {
+        if (ownerId == null || !ownerId.equals(actingUserId)) {
             throw new IllegalArgumentException("Apenas o autor pode editar esta arte.");
         }
 

@@ -74,7 +74,6 @@ export function PublishForm() {
         description: trimmedDescription,
         imageUrl: trimmedImageUrl,
         category: trimmedCategory,
-        userId: user.id,
       })
       toast.success("Arte publicada!")
       router.push("/")

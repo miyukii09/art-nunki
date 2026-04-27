@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import type { User } from "./api"
+import { getCurrentUser, logout as apiLogout, type User } from "./api"
 
 type AuthContextValue = {
   user: User | null
@@ -19,15 +19,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = React.useState(true)
 
   React.useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) {
-        setUserState(JSON.parse(raw))
+    let isMounted = true
+
+    async function syncUser() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY)
+        if (raw) {
+          setUserState(JSON.parse(raw))
+        }
+      } catch {
+        localStorage.removeItem(STORAGE_KEY)
       }
-    } catch {
-      // ignore parse errors
-    } finally {
-      setIsLoading(false)
+
+      try {
+        const currentUser = await getCurrentUser()
+        if (!isMounted) return
+        setUserState(currentUser)
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(currentUser))
+      } catch {
+        if (!isMounted) return
+        setUserState(null)
+        localStorage.removeItem(STORAGE_KEY)
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    void syncUser()
+
+    return () => {
+      isMounted = false
     }
   }, [])
 
@@ -41,6 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const logout = React.useCallback(() => {
+    void apiLogout().catch(() => undefined)
     setUser(null)
   }, [setUser])
 

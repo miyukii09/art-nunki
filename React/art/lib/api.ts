@@ -45,6 +45,7 @@ async function request<T>(
       ...options,
       headers,
       cache: "no-store",
+      credentials: "include",
     })
   } catch {
     throw new Error(
@@ -92,6 +93,14 @@ export function login(input: { email: string; password: string }) {
   })
 }
 
+export function getCurrentUser() {
+  return request<User>("/auth/me", { method: "GET" })
+}
+
+export function logout() {
+  return request<void>("/auth/logout", { method: "POST" })
+}
+
 // ---------------- Posts ----------------
 
 export function listPosts() {
@@ -107,7 +116,6 @@ export function createPost(input: {
   description: string
   imageUrl: string
   category: string
-  userId: number
 }) {
   return request<Post>("/posts", {
     method: "POST",
@@ -116,7 +124,6 @@ export function createPost(input: {
       description: input.description,
       imageUrl: input.imageUrl,
       category: input.category,
-      user: { id: input.userId },
     }),
   })
 }
@@ -128,7 +135,6 @@ export function updatePost(
     description: string
     imageUrl: string
     category: string
-    userId: number
   },
 ) {
   return request<Post>(`/posts/${id}`, {
@@ -138,13 +144,12 @@ export function updatePost(
       description: input.description,
       imageUrl: input.imageUrl,
       category: input.category,
-      user: { id: input.userId },
     }),
   })
 }
 
-export function deletePost(id: number, userId: number) {
-  return request<void>(`/posts/${id}?userId=${userId}`, {
+export function deletePost(id: number) {
+  return request<void>(`/posts/${id}`, {
     method: "DELETE",
   })
 }
