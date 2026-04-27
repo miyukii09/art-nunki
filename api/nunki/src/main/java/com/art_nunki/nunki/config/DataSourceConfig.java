@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 @Configuration
 public class DataSourceConfig {
@@ -40,14 +42,42 @@ public class DataSourceConfig {
             return rawUrl;
         }
 
-        if (rawUrl.startsWith("postgresql://")) {
-            return "jdbc:" + rawUrl;
-        }
-
-        if (rawUrl.startsWith("postgres://")) {
-            return "jdbc:postgresql://" + rawUrl.substring("postgres://".length());
+        if (rawUrl.startsWith("postgresql://") || rawUrl.startsWith("postgres://")) {
+            return toPostgresJdbcUrl(rawUrl);
         }
 
         return rawUrl;
+    }
+
+    private String toPostgresJdbcUrl(String rawUrl) {
+        try {
+            URI uri = new URI(rawUrl);
+            String scheme = uri.getScheme();
+            String host = uri.getHost();
+            int port = uri.getPort();
+            String path = uri.getPath();
+            String query = uri.getQuery();
+
+            if (host == null || host.isBlank() || path == null || path.isBlank()) {
+                return rawUrl;
+            }
+
+            StringBuilder jdbcUrl = new StringBuilder("jdbc:postgresql://");
+            jdbcUrl.append(host);
+
+            if (port > 0) {
+                jdbcUrl.append(":").append(port);
+            }
+
+            jdbcUrl.append(path);
+
+            if (query != null && !query.isBlank()) {
+                jdbcUrl.append("?").append(query);
+            }
+
+            return jdbcUrl.toString();
+        } catch (URISyntaxException ignored) {
+            return rawUrl;
+        }
     }
 }
