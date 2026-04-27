@@ -1,13 +1,8 @@
 import type { Metadata, Viewport } from "next"
-import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/lib/auth-context"
 import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
-
-const analyticsEnabled =
-  process.env.NODE_ENV === "production" &&
-  process.env.NEXT_PUBLIC_VERCEL_ANALYTICS === "1"
 
 export const metadata: Metadata = {
   title: "Nunki — Galeria de Artes",
@@ -46,7 +41,6 @@ export default function RootLayout({
             <Toaster richColors position="top-center" />
           </AuthProvider>
         </ThemeProvider>
-        {analyticsEnabled ? <Analytics /> : null}
       </body>
     </html>
   )
