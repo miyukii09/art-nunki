@@ -8,6 +8,14 @@ import { Loader2 } from "lucide-react"
 import { login } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
   Field,
@@ -22,6 +30,7 @@ export function LoginForm() {
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
   const [submitting, setSubmitting] = React.useState(false)
+  const [forgotPasswordOpen, setForgotPasswordOpen] = React.useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -79,6 +88,16 @@ export function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="link"
+              className="h-auto p-0 text-sm"
+              onClick={() => setForgotPasswordOpen(true)}
+            >
+              Esqueci minha senha
+            </Button>
+          </div>
         </Field>
 
         <Button
@@ -106,6 +125,56 @@ export function LoginForm() {
           </Link>
         </FieldDescription>
       </FieldGroup>
+
+      <Dialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Recuperar senha</DialogTitle>
+            <DialogDescription>
+              A Nunki ainda não tem recuperação automática por email para
+              manter a troca de senha segura.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 text-sm text-muted-foreground">
+            <p>
+              Se você ainda estiver com a conta aberta em outro navegador ou
+              dispositivo, entre em <strong className="text-foreground">Meu perfil</strong>{" "}
+              e defina uma nova senha por lá.
+            </p>
+            <p>
+              Se não tiver mais acesso, o caminho mais seguro no momento é
+              pedir ajuda ao suporte do projeto para validar a conta antes de
+              qualquer alteração.
+            </p>
+            <p>
+              Email informado:{" "}
+              <strong className="text-foreground">
+                {email.trim() || "nenhum email preenchido ainda"}
+              </strong>
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setForgotPasswordOpen(false)}
+            >
+              Fechar
+            </Button>
+            <Button asChild type="button">
+              <a
+                href="https://discord.gg/mMtbt27TGe"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Abrir suporte
+              </a>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </form>
   )
 }
