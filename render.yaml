@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: nunki-api
+    runtime: docker
+    rootDir: api/nunki
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: nunki-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: nunki-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: nunki-db
+          property: password
+      - key: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+        value: org.postgresql.Driver
+      - key: SPRING_JPA_DATABASE_PLATFORM
+        value: org.hibernate.dialect.PostgreSQLDialect
+      - key: SPRING_H2_CONSOLE_ENABLED
+        value: "false"
+      - key: APP_CORS_ALLOWED_ORIGIN_PATTERNS
+        value: http://localhost:3000,http://127.0.0.1:3000,https://*.vercel.app
+
+databases:
+  - name: nunki-db
+    plan: free
+    databaseName: nunki
