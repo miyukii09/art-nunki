@@ -5,6 +5,10 @@ import { AuthProvider } from "@/lib/auth-context"
 import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 
+const analyticsEnabled =
+  process.env.NODE_ENV === "production" &&
+  process.env.NEXT_PUBLIC_VERCEL_ANALYTICS === "1"
+
 export const metadata: Metadata = {
   title: "Nunki — Galeria de Artes",
   description:
@@ -42,7 +46,7 @@ export default function RootLayout({
             <Toaster richColors position="top-center" />
           </AuthProvider>
         </ThemeProvider>
-        {process.env.NODE_ENV === "production" && <Analytics />}
+        {analyticsEnabled ? <Analytics /> : null}
       </body>
     </html>
   )
