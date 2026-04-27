@@ -18,7 +18,7 @@ import {
 
 export function RegisterForm() {
   const router = useRouter()
-  const { setUser } = useAuth()
+  const { setSession } = useAuth()
   const [name, setName] = React.useState("")
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
@@ -45,9 +45,9 @@ export function RegisterForm() {
     try {
       await register({ name: trimmedName, email: trimmedEmail, password })
       // o backend não retorna password, fazemos login logo em seguida para ter o id
-      const user = await login({ email: trimmedEmail, password })
-      setUser(user)
-      toast.success(`Conta criada! Bem-vindo, ${user.name}.`)
+      const session = await login({ email: trimmedEmail, password })
+      setSession(session.user, session.token)
+      toast.success(`Conta criada! Bem-vindo, ${session.user.name}.`)
       router.push("/")
     } catch (err) {
       const message =

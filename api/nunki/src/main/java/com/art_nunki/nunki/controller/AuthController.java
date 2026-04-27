@@ -1,12 +1,14 @@
 package com.art_nunki.nunki.controller;
 
 import com.art_nunki.nunki.model.User;
+import com.art_nunki.nunki.service.AuthSessionService;
 import com.art_nunki.nunki.service.PasswordResetResult;
 import com.art_nunki.nunki.service.PasswordResetService;
 import com.art_nunki.nunki.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,6 +19,8 @@ public class AuthController {
     private UserService userService;
     @Autowired
     private PasswordResetService passwordResetService;
+    @Autowired
+    private AuthSessionService authSessionService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
@@ -32,14 +36,15 @@ public class AuthController {
         return userService.login(user.getEmail(), user.getPassword())
                 .<ResponseEntity<?>>map(authenticatedUser -> {
                     session.setAttribute("userId", authenticatedUser.getId());
-                    return ResponseEntity.ok(authenticatedUser);
+                    String token = authSessionService.createSessionToken(authenticatedUser);
+                    return ResponseEntity.ok(new AuthResponse(authenticatedUser, token));
                 })
                 .orElseGet(() -> ResponseEntity.status(401).body("Credenciais inválidas"));
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> me(HttpSession session) {
-        Long userId = (Long) session.getAttribute("userId");
+    public ResponseEntity<?> me(Authentication authentication, HttpSession session) {
+        Long userId = getAuthenticatedUserId(authentication);
         if (userId == null) {
             return ResponseEntity.status(401).body("Sessao nao autenticada.");
         }
@@ -53,8 +58,17 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpSession session) {
-        session.invalidate();
+    public ResponseEntity<Void> logout(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            HttpSession session
+    ) {
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            String rawToken = authorization.substring("Bearer ".length()).trim();
+            authSessionService.revokeToken(rawToken);
+        }
+        if (session != null) {
+            session.invalidate();
+        }
         return ResponseEntity.noContent().build();
     }
 
@@ -85,5 +99,17 @@ public class AuthController {
     }
 
     public record ResetPasswordRequest(String token, String password) {
+    }
+
+    public record AuthResponse(User user, String token) {
+    }
+
+    private Long getAuthenticatedUserId(Authentication authentication) {
+        if (authentication == null) {
+            return null;
+        }
+
+        Object principal = authentication.getPrincipal();
+        return principal instanceof Number number ? number.longValue() : null;
     }
 }

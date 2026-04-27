@@ -25,6 +25,11 @@ export type PasswordResetResponse = {
   resetUrl?: string | null
 }
 
+export type AuthSession = {
+  user: User
+  token: string
+}
+
 export type Post = {
   id: number
   title: string
@@ -41,9 +46,14 @@ async function request<T>(
 ): Promise<T> {
   const url = `${getApiLabel()}${path.startsWith("/") ? path : `/${path}`}`
   const headers = new Headers(options.headers)
+  const authToken = getStoredAuthToken()
 
   if (options.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json")
+  }
+
+  if (authToken && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${authToken}`)
   }
 
   let res: Response
@@ -95,7 +105,7 @@ export function register(input: {
 }
 
 export function login(input: { email: string; password: string }) {
-  return request<User>("/auth/login", {
+  return request<AuthSession>("/auth/login", {
     method: "POST",
     body: JSON.stringify(input),
   })
@@ -197,4 +207,28 @@ export function updateUser(
 
 export function deleteUser(id: number) {
   return request<void>(`/users/${id}`, { method: "DELETE" })
+}
+
+const TOKEN_STORAGE_KEY = "nunki.token"
+
+export function getStoredAuthToken() {
+  if (typeof window === "undefined") {
+    return null
+  }
+
+  const value = window.localStorage.getItem(TOKEN_STORAGE_KEY)
+  return value && value.trim() ? value : null
+}
+
+export function setStoredAuthToken(token: string | null) {
+  if (typeof window === "undefined") {
+    return
+  }
+
+  if (token && token.trim()) {
+    window.localStorage.setItem(TOKEN_STORAGE_KEY, token)
+    return
+  }
+
+  window.localStorage.removeItem(TOKEN_STORAGE_KEY)
 }

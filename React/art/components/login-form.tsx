@@ -26,7 +26,7 @@ import {
 
 export function LoginForm() {
   const router = useRouter()
-  const { setUser } = useAuth()
+  const { setSession } = useAuth()
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
   const [submitting, setSubmitting] = React.useState(false)
@@ -48,9 +48,9 @@ export function LoginForm() {
 
     setSubmitting(true)
     try {
-      const user = await login({ email: trimmedEmail, password })
-      setUser(user)
-      toast.success(`Olá, ${user.name || user.email}!`)
+      const session = await login({ email: trimmedEmail, password })
+      setSession(session.user, session.token)
+      toast.success(`Olá, ${session.user.name || session.user.email}!`)
       router.push("/")
     } catch (err) {
       const message =

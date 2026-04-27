@@ -2,9 +2,9 @@ package com.art_nunki.nunki.controller;
 
 import com.art_nunki.nunki.model.Post;
 import com.art_nunki.nunki.service.PostService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,14 +16,19 @@ public class PostController {
     @Autowired
     private PostService postService;
 
-    private Long getAuthenticatedUserId(HttpSession session) {
-        return (Long) session.getAttribute("userId");
+    private Long getAuthenticatedUserId(Authentication authentication) {
+        if (authentication == null) {
+            return null;
+        }
+
+        Object principal = authentication.getPrincipal();
+        return principal instanceof Number number ? number.longValue() : null;
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Post post, HttpSession session) {
+    public ResponseEntity<?> create(@RequestBody Post post, Authentication authentication) {
         try {
-            return ResponseEntity.ok(postService.create(post, getAuthenticatedUserId(session)));
+            return ResponseEntity.ok(postService.create(post, getAuthenticatedUserId(authentication)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -42,9 +47,9 @@ public class PostController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Post post, HttpSession session) {
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Post post, Authentication authentication) {
         try {
-            return ResponseEntity.ok(postService.update(id, getAuthenticatedUserId(session), post));
+            return ResponseEntity.ok(postService.update(id, getAuthenticatedUserId(authentication), post));
         } catch (IllegalArgumentException e) {
             String message = e.getMessage() != null ? e.getMessage() : "";
             int status = message.contains("nao foi encontrada") ? 404 : 400;
@@ -53,9 +58,9 @@ public class PostController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id, HttpSession session) {
+    public ResponseEntity<?> delete(@PathVariable Long id, Authentication authentication) {
         try {
-            postService.delete(id, getAuthenticatedUserId(session));
+            postService.delete(id, getAuthenticatedUserId(authentication));
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             String message = e.getMessage() != null ? e.getMessage() : "";

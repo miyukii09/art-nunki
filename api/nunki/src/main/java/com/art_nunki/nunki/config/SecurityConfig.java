@@ -1,5 +1,6 @@
 package com.art_nunki.nunki.config;
 
+import com.art_nunki.nunki.service.AuthSessionService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,7 +31,10 @@ public class SecurityConfig {
     private String allowedOriginPatterns;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            OncePerRequestFilter sessionAuthenticationFilter
+    ) throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -55,7 +59,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, authException) ->
                                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
                 )
-                .addFilterBefore(sessionAuthenticationFilter(), AnonymousAuthenticationFilter.class)
+                .addFilterBefore(sessionAuthenticationFilter, AnonymousAuthenticationFilter.class)
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();
@@ -85,7 +89,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public OncePerRequestFilter sessionAuthenticationFilter() {
+    public OncePerRequestFilter sessionAuthenticationFilter(AuthSessionService authSessionService) {
         return new OncePerRequestFilter() {
             @Override
             protected void doFilterInternal(
@@ -93,8 +97,18 @@ public class SecurityConfig {
                     jakarta.servlet.http.HttpServletResponse response,
                     jakarta.servlet.FilterChain filterChain
             ) throws java.io.IOException, jakarta.servlet.ServletException {
-                HttpSession session = request.getSession(false);
-                Object userId = session != null ? session.getAttribute("userId") : null;
+                Object userId = null;
+
+                String authorization = request.getHeader("Authorization");
+                if (authorization != null && authorization.startsWith("Bearer ")) {
+                    String rawToken = authorization.substring("Bearer ".length()).trim();
+                    userId = authSessionService.resolveUserId(rawToken).orElse(null);
+                }
+
+                if (userId == null) {
+                    HttpSession session = request.getSession(false);
+                    userId = session != null ? session.getAttribute("userId") : null;
+                }
 
                 if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UsernamePasswordAuthenticationToken authentication =

@@ -2,6 +2,7 @@ package com.art_nunki.nunki.service;
 
 import com.art_nunki.nunki.model.Post;
 import com.art_nunki.nunki.repository.UserRepository;
+import com.art_nunki.nunki.repository.AuthSessionTokenRepository;
 import com.art_nunki.nunki.repository.PasswordResetTokenRepository;
 import com.art_nunki.nunki.repository.PostRepository;
 import com.art_nunki.nunki.model.User;
@@ -21,6 +22,8 @@ public class UserService {
     private PostRepository postRepository;
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
+    @Autowired
+    private AuthSessionTokenRepository authSessionTokenRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -122,7 +125,10 @@ public class UserService {
             post.setUser(null);
         }
         postRepository.saveAll(posts);
-        userRepository.findById(id).ifPresent(passwordResetTokenRepository::deleteAllByUser);
+        userRepository.findById(id).ifPresent(user -> {
+            passwordResetTokenRepository.deleteAllByUser(user);
+            authSessionTokenRepository.deleteAllByUser(user);
+        });
         userRepository.deleteById(id);
         return true;
     }

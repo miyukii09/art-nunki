@@ -5,6 +5,7 @@ import com.art_nunki.nunki.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,8 +17,13 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    private Long getAuthenticatedUserId(HttpSession session) {
-        return (Long) session.getAttribute("userId");
+    private Long getAuthenticatedUserId(Authentication authentication) {
+        if (authentication == null) {
+            return null;
+        }
+
+        Object principal = authentication.getPrincipal();
+        return principal instanceof Number number ? number.longValue() : null;
     }
 
     @GetMapping
@@ -33,9 +39,9 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody User user, HttpSession session) {
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody User user, Authentication authentication) {
         try {
-            return userService.update(id, getAuthenticatedUserId(session), user)
+            return userService.update(id, getAuthenticatedUserId(authentication), user)
                     .<ResponseEntity<?>>map(ResponseEntity::ok)
                     .orElseGet(() -> ResponseEntity.notFound().build());
         } catch (IllegalArgumentException e) {
@@ -44,9 +50,9 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id, HttpSession session) {
+    public ResponseEntity<?> delete(@PathVariable Long id, Authentication authentication, HttpSession session) {
         try {
-            if (!userService.delete(id, getAuthenticatedUserId(session))) {
+            if (!userService.delete(id, getAuthenticatedUserId(authentication))) {
                 return ResponseEntity.notFound().build();
             }
 

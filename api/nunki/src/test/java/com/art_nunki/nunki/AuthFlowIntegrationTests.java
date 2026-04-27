@@ -2,6 +2,7 @@ package com.art_nunki.nunki;
 
 import com.art_nunki.nunki.model.Post;
 import com.art_nunki.nunki.model.User;
+import com.art_nunki.nunki.repository.AuthSessionTokenRepository;
 import com.art_nunki.nunki.repository.PasswordResetTokenRepository;
 import com.art_nunki.nunki.repository.PostRepository;
 import com.art_nunki.nunki.repository.UserRepository;
@@ -20,6 +21,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -39,6 +41,8 @@ class AuthFlowIntegrationTests {
 
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
+    @Autowired
+    private AuthSessionTokenRepository authSessionTokenRepository;
 
     @Autowired
     private PostRepository postRepository;
@@ -48,6 +52,7 @@ class AuthFlowIntegrationTests {
 
     @BeforeEach
     void cleanDatabase() {
+        authSessionTokenRepository.deleteAll();
         passwordResetTokenRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();
@@ -67,7 +72,7 @@ class AuthFlowIntegrationTests {
     }
 
     @Test
-    void hashesPasswordAndAllowsAuthenticatedAuthoring() throws Exception {
+    void hashesPasswordAndAllowsAuthenticatedAuthoringWithBearerToken() throws Exception {
         mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of(
@@ -81,7 +86,7 @@ class AuthFlowIntegrationTests {
         assertThat(savedUser.getPassword()).isNotEqualTo("1234");
         assertThat(passwordEncoder.matches("1234", savedUser.getPassword())).isTrue();
 
-        MockHttpSession session = (MockHttpSession) mockMvc.perform(post("/auth/login")
+        String token = objectMapper.readTree(mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of(
                                 "email", "yukii@example.com",
@@ -89,11 +94,11 @@ class AuthFlowIntegrationTests {
                         ))))
                 .andExpect(status().isOk())
                 .andReturn()
-                .getRequest()
-                .getSession(false);
+                .getResponse()
+                .getContentAsString()).get("token").asText();
 
         mockMvc.perform(post("/posts")
-                        .session(session)
+                        .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of(
                                 "title", "Com sessao",
@@ -101,8 +106,13 @@ class AuthFlowIntegrationTests {
                                 "imageUrl", "https://example.com/image.png",
                                 "category", "Digital"
                         ))))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.user.email").value("yukii@example.com"));
+
+        mockMvc.perform(get("/auth/me")
+                        .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.user.email").value("yukii@example.com"));
+                .andExpect(jsonPath("$.email").value("yukii@example.com"));
     }
 
     @Test

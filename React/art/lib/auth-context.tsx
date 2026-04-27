@@ -1,12 +1,19 @@
 "use client"
 
 import * as React from "react"
-import { getCurrentUser, logout as apiLogout, type User } from "./api"
+import {
+  getCurrentUser,
+  getStoredAuthToken,
+  logout as apiLogout,
+  setStoredAuthToken,
+  type User,
+} from "./api"
 
 type AuthContextValue = {
   user: User | null
   isLoading: boolean
   setUser: (user: User | null) => void
+  setSession: (user: User, token: string) => void
   logout: () => void
 }
 
@@ -31,6 +38,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem(STORAGE_KEY)
       }
 
+      const token = getStoredAuthToken()
+      if (!token) {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+        return
+      }
+
       try {
         const currentUser = await getCurrentUser()
         if (!isMounted) return
@@ -40,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!isMounted) return
         setUserState(null)
         localStorage.removeItem(STORAGE_KEY)
+        setStoredAuthToken(null)
       } finally {
         if (isMounted) {
           setIsLoading(false)
@@ -60,17 +76,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(u))
     } else {
       localStorage.removeItem(STORAGE_KEY)
+      setStoredAuthToken(null)
     }
+  }, [])
+
+  const setSession = React.useCallback((u: User, token: string) => {
+    setStoredAuthToken(token)
+    setUserState(u)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(u))
   }, [])
 
   const logout = React.useCallback(() => {
     void apiLogout().catch(() => undefined)
-    setUser(null)
-  }, [setUser])
+    setStoredAuthToken(null)
+    setUserState(null)
+    localStorage.removeItem(STORAGE_KEY)
+  }, [])
 
   const value = React.useMemo(
-    () => ({ user, isLoading, setUser, logout }),
-    [user, isLoading, setUser, logout],
+    () => ({ user, isLoading, setUser, setSession, logout }),
+    [user, isLoading, setUser, setSession, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
