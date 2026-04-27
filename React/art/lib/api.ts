@@ -1,7 +1,10 @@
 // Client HTTP para o backend Spring Boot (Nunki)
 // Configure NEXT_PUBLIC_API_URL nas variáveis de ambiente para produção.
 
-const DEFAULT_API_URL = "http://localhost:8080"
+const DEFAULT_API_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://nunki-api-dcp4.onrender.com"
+    : "http://localhost:8080"
 
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL?.trim() || DEFAULT_API_URL
